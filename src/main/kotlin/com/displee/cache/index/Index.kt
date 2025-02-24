@@ -11,6 +11,7 @@ import com.displee.compress.type.Compressor
 import com.displee.compress.type.EmptyCompressor
 import com.displee.io.impl.InputBuffer
 import com.displee.io.impl.OutputBuffer
+import com.displee.util.checkFor229
 import com.displee.util.generateCrc
 import com.displee.util.generateWhirlpool
 import java.io.RandomAccessFile
@@ -42,6 +43,7 @@ open class Index(origin: CacheLibrary, id: Int, val raf: RandomAccessFile) : Ref
         try {
             read(InputBuffer(archiveSector.decompress(origin.compressors)))
         } catch (e: Exception) {
+            origin.checkFor229()
             throw RuntimeException("error during reading archive $id $version $revision $mask", e)
         }
         compressionType = archiveSector.compressionType
@@ -106,6 +108,7 @@ open class Index(origin: CacheLibrary, id: Int, val raf: RandomAccessFile) : Ref
             val written = origin.index255?.writeArchiveSector(this.id, indexData) ?: false
             check(written) { "Unable to write data to checksum table. Your cache may be corrupt." }
         }
+        origin.checkFor229()
         listener?.notify(1.0, "Successfully updated index $id.")
         return true
     }

@@ -15,6 +15,7 @@ import com.displee.compress.type.Compressors
 import com.displee.io.Buffer
 import com.displee.io.impl.OutputBuffer
 import com.displee.util.Whirlpool
+import com.displee.util.checkFor229
 import com.displee.util.generateWhirlpool
 import com.displee.util.log
 import java.io.File
@@ -24,7 +25,7 @@ import java.io.RandomAccessFile
 import java.math.BigInteger
 import java.util.*
 
-open class CacheLibrary(val path: String, val clearDataAfterUpdate: Boolean = false, private val listener: ProgressListener? = null, val osrs229Plus: Boolean = false) {
+open class CacheLibrary(val path: String, val clearDataAfterUpdate: Boolean = false, val listener: ProgressListener? = null, val osrs229Plus: Boolean = false) {
 
     lateinit var mainFile: RandomAccessFile
 
@@ -52,6 +53,7 @@ open class CacheLibrary(val path: String, val clearDataAfterUpdate: Boolean = fa
             load()
         }
         log.debug("cache {}. idx2.rev={}", indexCount, if (exists(2)) index(2).revision else "?")
+        checkFor229()
     }
 
     /**

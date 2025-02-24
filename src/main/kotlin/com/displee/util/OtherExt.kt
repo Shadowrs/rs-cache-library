@@ -1,5 +1,6 @@
 package com.displee.util
 
+import com.displee.cache.CacheLibrary
 import com.displee.cache.index.Index.Companion.WHIRLPOOL_SIZE
 import org.slf4j.LoggerFactory
 import java.io.InputStream
@@ -65,3 +66,16 @@ fun String.hashCode317(): Int {
 }
 
 val log = LoggerFactory.getLogger("displeeLog")
+
+fun CacheLibrary.checkFor229() {
+    val origin = this
+    if (!origin.is317() && !origin.isRS3() && !origin.osrs229Plus && origin.indexCount <= 23 && origin.exists(2)) {
+        val rev = origin.index(2).revision
+        if (rev >= 300 && rev >= 4652) { // as of rev 229 2025 feb 18th.
+            val msg = "WARNING: Auto-detected that this cache is OSRS rev229+ (based on index count ${origin.indexCount} and index2.revision=$rev. If so, you need to set osrs229Plus as TRUE when initilizing the library : `CacheLibrary.create(path, osrs229Plus = true`. If you have cache exceptions after packing, this is probably why. Format is being written as pre-229."
+            origin.listener?.notify(99.9, msg) // no listener may be attached
+            log.warn("{}", msg) // logger may be muted
+            System.err.println(msg)
+        }
+    }
+}
