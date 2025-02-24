@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.displee"
-version = "7.2.0"
+version = "7.2.0-eli"
 
 description = "A library written in Kotlin used to read and write to all cache formats of RuneScape."
 
@@ -19,6 +19,7 @@ dependencies {
     implementation("com.github.jponge:lzma-java:1.3")
     implementation("org.apache.ant:ant:1.10.14")
     implementation("com.displee:disio:2.2")
+    implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.36")
 }
 
 java {
@@ -78,6 +79,7 @@ publishing {
     }
 }
 
+/*
 signing {
     sign(publishing.publications["mavenJava"])
-}
+}*/

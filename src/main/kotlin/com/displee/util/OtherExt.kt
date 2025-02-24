@@ -1,6 +1,7 @@
 package com.displee.util
 
 import com.displee.cache.index.Index.Companion.WHIRLPOOL_SIZE
+import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -62,3 +63,5 @@ fun String.hashCode317(): Int {
     }
     return hash
 }
+
+val log = LoggerFactory.getLogger("displeeLog")

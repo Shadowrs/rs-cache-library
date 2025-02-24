@@ -16,6 +16,7 @@ import com.displee.io.Buffer
 import com.displee.io.impl.OutputBuffer
 import com.displee.util.Whirlpool
 import com.displee.util.generateWhirlpool
+import com.displee.util.log
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -23,7 +24,7 @@ import java.io.RandomAccessFile
 import java.math.BigInteger
 import java.util.*
 
-open class CacheLibrary(val path: String, val clearDataAfterUpdate: Boolean = false, private val listener: ProgressListener? = null) {
+open class CacheLibrary(val path: String, val clearDataAfterUpdate: Boolean = false, private val listener: ProgressListener? = null, val osrs229Plus: Boolean = false) {
 
     lateinit var mainFile: RandomAccessFile
 
@@ -35,7 +36,7 @@ open class CacheLibrary(val path: String, val clearDataAfterUpdate: Boolean = fa
 
     var closed = false
 
-    private val indexCount: Int
+    val indexCount: Int
         get() = indices.lastIndex
 
     init {
@@ -50,6 +51,7 @@ open class CacheLibrary(val path: String, val clearDataAfterUpdate: Boolean = fa
         } else {
             load()
         }
+        log.debug("cache {}. idx2.rev={}", indexCount, if (exists(2)) index(2).revision else "?")
     }
 
     /**
@@ -93,7 +95,7 @@ open class CacheLibrary(val path: String, val clearDataAfterUpdate: Boolean = fa
             } catch (e: Exception) {
                 indices.add(i, null)
                 e.printStackTrace()
-                listener?.notify(progress, "Failed to load index $i.")
+                listener?.notify(progress, "Failed to load index $i : ${e.message}")
             }
         }
     }
@@ -401,8 +403,8 @@ open class CacheLibrary(val path: String, val clearDataAfterUpdate: Boolean = fa
 
         @JvmStatic
         @JvmOverloads
-        fun create(path: String, clearDataAfterUpdate: Boolean = false, listener: ProgressListener? = null): CacheLibrary {
-            return CacheLibrary(path, clearDataAfterUpdate, listener)
+        fun create(path: String, clearDataAfterUpdate: Boolean = false, listener: ProgressListener? = null, osrs229Plus: Boolean = false): CacheLibrary {
+            return CacheLibrary(path, clearDataAfterUpdate, listener, osrs229Plus)
         }
     }
 

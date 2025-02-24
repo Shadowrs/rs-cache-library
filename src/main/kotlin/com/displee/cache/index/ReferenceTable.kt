@@ -9,13 +9,14 @@ import com.displee.compress.CompressionType
 import com.displee.compress.decompress
 import com.displee.io.impl.InputBuffer
 import com.displee.io.impl.OutputBuffer
+import com.displee.util.log
 import java.util.*
 import kotlin.collections.ArrayList
 
 open class ReferenceTable(protected val origin: CacheLibrary, val id: Int) : Comparable<ReferenceTable> {
 
     var revision = 0
-    private var mask = 0x0
+    var mask = 0x0
     private var needUpdate = false
     protected var archives: SortedMap<Int, Archive> = TreeMap()
     private var archiveNames = mutableListOf<Int>()
@@ -37,6 +38,7 @@ open class ReferenceTable(protected val origin: CacheLibrary, val id: Int) : Com
         val whirlpool = mask and FLAG_WHIRLPOOL != 0
         val lengths = mask and FLAG_LENGTHS != 0
         val checksums = mask and FLAG_CHECKSUMS != 0
+        log.debug("arc {} mask {} {} {} {} {}", id, mask, named, whirlpool, lengths, checksums)
 
         val readFun: () -> (Int) = if (version >= 7) {
             {
@@ -64,8 +66,11 @@ open class ReferenceTable(protected val origin: CacheLibrary, val id: Int) : Com
             }
         }
         archives.forEach { it.crc = buffer.readInt() }
-        if (checksums) {
-            archives.forEach { it.checksum = buffer.readInt() }
+        val readChecksumsAndLengths = origin.isRS3() || origin.osrs229Plus
+        if (readChecksumsAndLengths) {
+            if (checksums) {
+                archives.forEach { it.checksum = buffer.readInt() }
+            }
         }
         if (whirlpool) {
             archives.forEach {
@@ -77,10 +82,12 @@ open class ReferenceTable(protected val origin: CacheLibrary, val id: Int) : Com
                 buffer.readBytes(archiveWhirlpool)
             }
         }
-        if (lengths) {
-            archives.forEach {
-                it.length = buffer.readInt()
-                it.uncompressedLength = buffer.readInt()
+        if (readChecksumsAndLengths) {
+            if (lengths) {
+                archives.forEach {
+                    it.length = buffer.readInt()
+                    it.uncompressedLength = buffer.readInt()
+                }
             }
         }
         archives.forEach { it.revision = buffer.readInt() }
@@ -137,8 +144,12 @@ open class ReferenceTable(protected val origin: CacheLibrary, val id: Int) : Com
         if (isNamed()) {
             archives.forEach { buffer.writeInt(it.hashName) }
         }
-        if (origin.isRS3()) {
-            archives.forEach { buffer.writeInt(it.crc) }
+        // rs3 & osrs rev 229
+        val readChecksumsAndLengths = origin.isRS3() || origin.osrs229Plus
+        if (readChecksumsAndLengths) {
+            if (origin.isRS3()) { // rs3 has crc first, osrs has after
+                archives.forEach { buffer.writeInt(it.crc) }
+            }
             if (hasChecksums()) {
                 archives.forEach { buffer.writeInt(it.checksum) }
             }
@@ -148,6 +159,9 @@ open class ReferenceTable(protected val origin: CacheLibrary, val id: Int) : Com
             }
             if (hasLengths()) {
                 archives.forEach { buffer.writeInt(it.length).writeInt(it.uncompressedLength) }
+            }
+            if (origin.osrs229Plus) {
+                archives.forEach { buffer.writeInt(it.crc) }
             }
         } else {
             if (hasWhirlpool()) {

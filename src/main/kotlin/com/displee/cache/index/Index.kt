@@ -39,7 +39,11 @@ open class Index(origin: CacheLibrary, id: Int, val raf: RandomAccessFile) : Ref
         val archiveSectorData = archiveSector.data
         crc = archiveSectorData.generateCrc()
         whirlpool = archiveSectorData.generateWhirlpool(origin.whirlpool)
-        read(InputBuffer(archiveSector.decompress(origin.compressors)))
+        try {
+            read(InputBuffer(archiveSector.decompress(origin.compressors)))
+        } catch (e: Exception) {
+            throw RuntimeException("error during reading archive $id $version $revision $mask", e)
+        }
         compressionType = archiveSector.compressionType
         compressor = archiveSector.compressor
     }
